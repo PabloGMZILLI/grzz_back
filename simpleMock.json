@@ -1,0 +1,62 @@
+{
+    "coletores":[
+        {
+        "id": 0,
+        "name": "Recebimento 00",
+        "infos": {
+            "leituras": [
+                {
+                    "produto": "maça", 
+                    "id": 2, 
+                    "preço": "6,00", 
+                    "quantidade": 12, 
+                    "unidade": "kg"
+                },
+                {
+                    "produto": "banana",
+                    "id": 7,
+                    "preço": "7,00",
+                    "quantidade": 11,
+                    "unidade": "kg"
+                },
+                {
+                    "produto": "cenoura",
+                    "id": 14,
+                    "preço": "5,00",
+                    "quantidade": 13,
+                    "unidade": "kg"
+                }
+                ]
+            }
+        },
+        { 
+        "id": 6,
+        "name": "Recebimento 07",
+        "infos": {
+            "leituras": [
+                {
+                    "produto": "suco laranja", 
+                    "id": 99, 
+                    "preço": "7,00", 
+                    "quantidade": 70, 
+                    "unidade": "L"
+                },
+                {
+                    "produto": "coca cola",
+                    "id": 7,
+                    "preço": "8,00",
+                    "quantidade": 123,
+                    "unidade": "L"
+                },
+                {
+                    "produto": "suco de uva",
+                    "id": 14,
+                    "preço": "7,00",
+                    "quantidade": 77,
+                    "unidade": "L"
+                }
+                ]
+            }
+        }
+]
+}
