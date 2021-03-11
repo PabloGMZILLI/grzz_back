@@ -1,7 +1,7 @@
 const express = require('express');
 const userController = require('../controllers/userController');
 const rankingController = require('../controllers/rankingController');
-const serviceController = require('../controllers/serviceController');
+const quizController = require('../controllers/quizController');
 const scheduleController = require('../controllers/scheduleController');
 const shiftController = require('../controllers/shiftController');
 
@@ -22,9 +22,9 @@ routes.delete('/schedules/delete/:id', scheduleController.delete);
 routes.post('/schedules/create', scheduleController.create);
 routes.get('/schedules', scheduleController.index);
 
-routes.post('/services/create', serviceController.create);
-routes.get('/services', serviceController.index);
-routes.delete('/services/delete/:id', serviceController.delete);
+routes.post('/quiz/create', quizController.create);
+routes.get('/quiz', quizController.index);
+routes.delete('/quiz/delete/:id', quizController.delete);
 
 routes.post('/shifts/create', shiftController.create);
 routes.get('/shifts/:user_id', shiftController.index);

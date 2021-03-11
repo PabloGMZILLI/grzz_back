@@ -9,7 +9,7 @@ exports.up = function(knex) {
     table.string('workspace');
     table.string('email');
     table.date('birthday');
-    table.integer('points');
+    table.float('points');
     table.string('account_type').notNullable();
   });
 };
