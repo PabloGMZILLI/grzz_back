@@ -1,14 +1,22 @@
 const connection = require('../database/connection');
-
+const url = require('url');
 
 module.exports = {
     async index (req, res) {
         const { user_id = '' } = req.headers;
+        const allParams = url.parse(req.url,true).query;
         let users = [];
+        let limit;
+        let offset;
+        allParams.limit ? limit = allParams.limit : limit = 10;
+        allParams.offset ? offset = allParams.offset : offset = 0;
         try {
             const user = await connection('users').select('account_type').where('id', user_id).first();
-            if (user && user.account_type == "admin") {
-                let response = await connection('users').select('id', 'account_type', 'name', 'phone', 'email', 'birthday', 'points').orderBy('points', 'desc');
+            if (user) {
+                if (user.account_type == "normal") {
+                    limit = 10;
+                }
+                let response = await connection('users').select('id', 'account_type', 'name', 'phone', 'email', 'birthday', 'points').orderBy('points', 'desc').limit(limit).offset(offset);
                 users = { ranking: response };
                 return res.json(users);
             }
