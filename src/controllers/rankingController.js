@@ -7,17 +7,28 @@ module.exports = {
         const allParams = url.parse(req.url,true).query;
         let users = [];
         let limit;
-        let offset;
+        let filter;
         allParams.limit ? limit = allParams.limit : limit = 10;
         allParams.offset ? offset = allParams.offset : offset = 0;
+        allParams.filter ? filter = allParams.filter.toUpperCase() : filter = undefined;
+        if (filter == 'ALL') filter = undefined;
         try {
-            const user = await connection('users').select('account_type').where('id', user_id).first();
-            if (user) {
-                if (user.account_type == "normal") {
+            const user_request = await connection('users').select('account_type').where('id', user_id).first();
+            if (user_request) {
+                if (user_request.account_type != "admin") {
                     limit = 10;
+                    if (filter) {
+                        users = { ranking: await connection('users').select('name', 'points').where('workspace', filter).orderBy('points', 'desc').limit(limit).offset(offset) };
+                    } else {
+                        users = { ranking: await connection('users').select('name', 'points').orderBy('points', 'desc').limit(limit).offset(offset) };
+                    }
+                } else {
+                    if (filter) {
+                        users = { ranking: await connection('users').select('id', 'name', 'phone', 'workspace', 'email', 'birthday', 'points').where('workspace', filter).orderBy('points', 'desc').limit(limit).offset(offset) };
+                    } else {
+                        users = { ranking: await connection('users').select('id', 'name', 'phone', 'workspace', 'email', 'birthday', 'points').orderBy('points', 'desc').limit(limit).offset(offset) };
+                    }
                 }
-                let response = await connection('users').select('id', 'account_type', 'name', 'phone', 'email', 'birthday', 'points').orderBy('points', 'desc').limit(limit).offset(offset);
-                users = { ranking: response };
                 return res.json(users);
             }
             return res.sendStatus(401);
@@ -29,18 +40,15 @@ module.exports = {
         const { user_id = '' } = req.headers;
         const { user, points } = req.body;
         try {
-            if (points) {
-                let pontuation = await connection('users').where('id', user).select('points').first();
-                var sumPoints = pontuation.points + points;
-            } 
-
             const userType = await connection('users').select('account_type').where('id', user_id).first();
             if (userType && userType.account_type == "admin" && points) {
-                await connection('users').where('id', user).update({points: sumPoints})
+                let pontuation = await connection('users').where('id', user).select('points').first();
+                if (!pontuation) return res.json(false);
+                var sumPoints = pontuation.points + points;
+                await connection('users').where('id', user).update({points: sumPoints});
                 res.json(true);
-            } else {
-                res.json(false);
             }
+            res.json(false);
         } catch(error) {
             res.sendStatus(500)
         }
@@ -49,24 +57,17 @@ module.exports = {
         const { user_id = '' } = req.headers;
         const { user, points } = req.body;
         try {
-            if (points) {
-                let pontuation = await connection('users').where('id', user).select('points').first();
-                if (pontuation.points == 0) {
-                    res.json(true);
-                }
-                var sumPoints = pontuation.points - points;
-                if (sumPoints < 0) {
-                    sumPoints = 0;
-                }
-            } 
-
             const userType = await connection('users').select('account_type').where('id', user_id).first();
             if (userType && userType.account_type == "admin" && points) {
+                let pontuation = await connection('users').where('id', user).select('points').first();
+                if (!pontuation) return res.json(false);
+                if (pontuation.points == 0) res.json(true);
+                let sumPoints = pontuation.points - points;
+                if (sumPoints < 0) sumPoints = 0;
                 await connection('users').where('id', user).update({points: sumPoints})
                 res.json(true);
-            } else {
-                res.json(false);
             }
+            res.json(false);
         } catch(error) {
             res.sendStatus(500)
         }
@@ -79,9 +80,8 @@ module.exports = {
             if (userType && userType.account_type == "admin") {
                 await connection('users').where('id', user).update({points: 0})
                 res.json(true);
-            } else {
-                res.json(false);
             }
+            res.json(false);
         } catch(error) {
             res.sendStatus(500)
         }

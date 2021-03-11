@@ -6,6 +6,7 @@ exports.up = function(knex) {
     table.string('password_hash').notNullable();
     table.string('password_salt').notNullable();
     table.string('phone').notNullable();
+    table.string('workspace');
     table.string('email');
     table.date('birthday');
     table.integer('points');

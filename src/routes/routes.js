@@ -16,6 +16,7 @@ routes.post('/points/reset', rankingController.reset);
 routes.get('/users', userController.index);
 routes.post('/register', userController.create);
 routes.post('/login', userController.login);
+routes.put('/workspace/set/:uid', userController.setWorkspace);
 
 routes.delete('/schedules/delete/:id', scheduleController.delete);
 routes.post('/schedules/create', scheduleController.create);
