@@ -37,7 +37,7 @@ module.exports = {
         try {
             const user = await connection('users').select('account_type').where('id', user_id).first();
             if (user && user.account_type == "admin") {
-                const users = await connection('users').select('id', 'name', 'phone', 'email', 'birthday');
+                const users = await connection('users').select('id', 'account_type', 'name', 'phone', 'email', 'birthday');
                 if (users.length == 0) {
                     return res.send('Nenhuma conta cadastrada');
                 }
@@ -50,13 +50,14 @@ module.exports = {
     },
 
     async create (req, res) {
-        const { nickname, password, phone, email, birthday, account_type = 'user' } = req.body;
+        const { nickname, password, phone, email, birthday, account_type = 'normal' } = req.body;
         try {
             const id = crypto.randomBytes(4).toString('HEX');
             const pass = generatePassword(password);
             const password_hash = pass.hash;
             const password_salt = pass.salt;
             const name = nickname.toLowerCase();
+            const points = 0;
             await connection('users').insert({
                 id,
                 name,
@@ -65,6 +66,7 @@ module.exports = {
                 phone,
                 email,
                 birthday,
+                points,
                 account_type,
             });
             return res.json({ id });

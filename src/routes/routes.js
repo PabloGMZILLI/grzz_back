@@ -1,10 +1,17 @@
 const express = require('express');
 const userController = require('../controllers/userController');
+const rankingController = require('../controllers/rankingController');
 const serviceController = require('../controllers/serviceController');
 const scheduleController = require('../controllers/scheduleController');
 const shiftController = require('../controllers/shiftController');
 
 const routes = express.Router();
+
+routes.get('/ranking', rankingController.index);
+routes.post('/points/add', rankingController.add);
+routes.post('/points/remove', rankingController.remove);
+routes.post('/points/reset', rankingController.reset);
+
 
 routes.get('/users', userController.index);
 routes.post('/register', userController.create);
