@@ -65,6 +65,7 @@ module.exports = {
         const { name, to_workspace, questions  } = req.body;
         const { user_id, last_modify } = req.headers;
         let question_id;
+        let max_time;
         const user = await connection('users').select('name', 'account_type').where('id', user_id).first();
         if (user && user.account_type == "admin") {
             let quiz_id = await connection('quiz').insert({
@@ -75,10 +76,14 @@ module.exports = {
                 'modify_by' : user.name
             });
             for (let i = 0; i < questions.length; i++) {
+                max_time = questions[i].max_time;
+                if (questions[i].max_time > 600) {
+                    max_time = 600;
+                }
                 question_id = await connection('questions').insert({
                     'question': questions[i].question,
                     'points': questions[i].points,
-                    'max_time': questions[i].max_time,
+                    'max_time': max_time,
                     'correct_answer': questions[i].correct_answer,
                     'wrong_answers': questions[i].wrong_answers
                 });
@@ -94,5 +99,51 @@ module.exports = {
             return res.send(true);
         }
         return res.sendStatus(401)
-    }
+    },
+
+    async userAnswer(req, res) {
+        const { user_id } = req.headers;
+        var { quiz_id, question_id, answer, time, date } = req.body;
+        var pontuation = 0;
+        var response;
+        var correct = false;
+        if (time > 600) {
+            time = 600;
+        }
+        try {
+            const user = await connection('users').select('id').where('id', user_id).first();
+            const ans = await connection('questions').select('correct_answer', 'points').where('id', question_id).first();
+            if (!ans) { 
+                res.sendStatus(401);
+            }
+            if (ans.correct_answer.toLowerCase() == answer.toLowerCase()) {
+                if (time < 20){
+                    pontuation = ans.points;
+                } else {
+                    pontuation = Math.abs((time / 60) - ans.points);
+                    pontuation = parseFloat(pontuation.toFixed(2));
+                    if (pontuation < (ans.points / 2)) pontuation = (ans.points / 2);
+                }
+                
+                let user_points = await connection('users').where('id', user.id).select('points').first();
+                if (!user_points) return res.json(false);
+                await connection('users').where('id', user.id).update({points: user_points.points + pontuation});
+                correct = true;
+                response = {'answer' : { 'user_id': user_id, 'quiz_id': quiz_id, 'question_id': question_id, 'answer_selected': answer, 'correct': correct, 'points': pontuation, 'date' : date }}
+            }
+            
+            console.log(date);
+            await connection('answers').insert({
+                'quiz_id': quiz_id,
+                'question_id': question_id,
+                'user_id': user_id,
+                'correct': correct,
+                'answer_selected': answer,
+                'date': date
+            });
+            return res.json(response);
+        } catch {
+            return res.sendStatus(500);
+        }
+    },
 }
