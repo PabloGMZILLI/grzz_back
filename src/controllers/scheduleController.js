@@ -2,7 +2,7 @@ const connection = require('../database/connection');
 const { create } = require('./userController');
 
 module.exports = {
-    async index (req, res) {
+    async index(req, res) {
         const schedules = await connection('schedules').select('*');
         if (schedules.length == 0) {
             return res.send('Nenhum agendamento cadastrado');
@@ -28,7 +28,7 @@ module.exports = {
             if (user && user.account_type == 'admin') {
                 status = true;
             }
-            
+
             await connection('schedules').insert({
                 date,
                 time,
@@ -40,6 +40,6 @@ module.exports = {
             return res.send(true);
         } catch (error) {
             return res.sendStatus(404);
-        } 
+        }
     }
 }

@@ -6,12 +6,12 @@ const otherEncrypt = require('bcrypt');
 // Encrypt passwords marcao method https://www.npmjs.com/package/bcrypt
 
 function generateSalt(length) {
-    return crypto.randomBytes(Math.ceil(length/2))
-            .toString('hex')
-            .slice(0,16); 
+    return crypto.randomBytes(Math.ceil(length / 2))
+        .toString('hex')
+        .slice(0, 16);
 };
 
-function sha512(password, salt){
+function sha512(password, salt) {
     var hash = crypto.createHmac('sha512', salt); // Algoritmo de cripto sha512
     hash.update(password);
     var hash = hash.digest('hex');
@@ -27,14 +27,14 @@ function generatePassword(password) {
     // A partir daqui você pode retornar a senha ou já salvar no banco o salt e a senha
     return passwordAndSalt;
 }
- 
+
 function testLogin(loginPassword, salt, hash) {
     var combination = sha512(loginPassword.toString(), salt.toString())
     return hash === combination.hash;
 }
 
 module.exports = {
-    async index (req, res) {
+    async index(req, res) {
         const { user_id = '' } = req.headers;
         try {
             const user = await connection('users').select('account_type').where('id', user_id).first();
@@ -51,7 +51,7 @@ module.exports = {
         }
     },
 
-    async create (req, res) {
+    async create(req, res) {
         const { nickname, password, phone, email, birthday, account_type = 'normal' } = req.body;
         try {
             const id = crypto.randomBytes(4).toString('HEX');
@@ -74,12 +74,12 @@ module.exports = {
                 account_type,
             });
             return res.json({ id });
-        } catch(error) {
+        } catch (error) {
             res.sendStatus(500);
         }
     },
 
-    async login (req, res) {
+    async login(req, res) {
         const { name = '', email = '', password } = req.body;
         try {
             const normalizedName = name.toLowerCase();
@@ -93,23 +93,23 @@ module.exports = {
                 }
             }
             return res.send(false);
-        } catch(error) {
+        } catch (error) {
             res.sendStatus(500)
         }
     },
-    async setWorkspace (req, res) {
+    async setWorkspace(req, res) {
         const { workspace = 'GERAL' } = req.body;
         const { user_id = '' } = req.headers;
         let uid = req.params.uid;
         if (!uid) return res.send(false);
         try {
             const userType = await connection('users').select('account_type').where('id', user_id).first();
-            if (userType && userType.account_type == "admin"){
-                let updated = await connection('users').where('id', uid).update({workspace: workspace.toUpperCase() });
+            if (userType && userType.account_type == "admin") {
+                let updated = await connection('users').where('id', uid).update({ workspace: workspace.toUpperCase() });
                 if (updated) return res.json(true);
             }
             return res.send(false);
-        } catch(error) {
+        } catch (error) {
             res.sendStatus(500)
         }
     }

@@ -1,7 +1,7 @@
 const connection = require('../database/connection');
 
 module.exports = {
-    async index (req, res) {
+    async index(req, res) {
         const { user_id } = req.params;
         try {
             let shifts = [];
@@ -10,14 +10,14 @@ module.exports = {
             } else {
                 shifts = await connection('shifts').select('*');
             }
-            
+
             if (shifts.length == 0) {
                 return res.send('Nenhum turno cadastrado');
             }
             return res.json(shifts);
         } catch (error) {
             return res.sendStatus(404);
-        } 
+        }
     },
 
     async delete(req, res) {
@@ -40,7 +40,7 @@ module.exports = {
             });
             return res.send(true);
         }
-        catch(error) {
+        catch (error) {
             return res.sendStatus(404)
         }
     }
