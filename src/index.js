@@ -5,7 +5,7 @@ var bodyParser = require("body-parser");
 const routes = require('./routes/routes')
 
 // Aplicação está rodando na porta 3333
-var port = process.env.port || 3333;
+
 
 const app = express();
 const cors = require('cors');
@@ -22,7 +22,7 @@ app.get("/", (req, res) => {
   res.json({ message: "Tudo 100%!" });
 });
 
-
+var port = process.env.PORT || 3333;
 // Biblioteca do Express vai rodar na porta tal... e vai printar no console(terminal)
 app.listen(port, () => {
   console.log(`O servidor está rodando na porta ${port}`);
