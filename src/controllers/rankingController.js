@@ -13,27 +13,15 @@ module.exports = {
         allParams.filter ? filter = allParams.filter.toUpperCase() : filter = undefined;
         if (filter == 'ALL') filter = undefined;
         try {
-            const user_request = await connection('users').select('account_type').where('id', user_id).first();
-            if (user_request || user_request && user_request.account_type == "admin") {
-                if (filter) {
-                    users = { ranking: await connection('users').select('id', 'name', 'phone', 'workspace', 'email', 'birthday', 'points').where('workspace', filter).orderBy('points', 'desc').limit(limit).offset(offset) };
-                } else {
-                    users = { ranking: await connection('users').select('id', 'name', 'phone', 'workspace', 'email', 'birthday', 'points').orderBy('points', 'desc').limit(limit).offset(offset) };
-                }
+            if (filter) {
+                users = await connection('users').select('id', 'name', 'lastname', 'phone', 'workspace', 'email', 'city', 'birthday', 'points').where('workspace', filter).orderBy('points', 'desc').limit(limit).offset(offset);
             } else {
-                limit = 10;
-                console.log('haha');
-                if (filter) {
-                    users = { ranking: await connection('users').select('name', 'points').where('workspace', filter).orderBy('points', 'desc').limit(limit).offset(offset) };
-                } else {
-                    users = { ranking: await connection('users').select('name', 'points').orderBy('points', 'desc').limit(limit).offset(offset) };
-                }
+                users = await connection('users').select('id', 'name', 'lastname', 'phone', 'workspace', 'email', 'city', 'birthday', 'points').orderBy('points', 'desc').limit(limit).offset(offset);
             }
             if (users) return res.json(users);
 
             return res.sendStatus(401);
         } catch (error) {
-            console.log(error);
             return res.sendStatus(500);
         }
     },

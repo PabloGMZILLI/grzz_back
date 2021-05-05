@@ -39,7 +39,7 @@ module.exports = {
         try {
             const user = await connection('users').select('account_type').where('id', user_id).first();
             if (user && user.account_type == "admin") {
-                const users = await connection('users').select('id', 'account_type', 'workspace', 'name', 'phone', 'email', 'birthday');
+                const users = await connection('users').select('id', 'name', 'lastname','account_type', 'workspace', 'phone', 'city', 'email', 'birthday');
                 if (users.length == 0) {
                     return res.send('Nenhuma conta cadastrada');
                 }
@@ -52,25 +52,24 @@ module.exports = {
     },
 
     async create(req, res) {
-        const { nickname, password, phone, email, birthday, account_type = 'normal' } = req.body;
+        const { name, lastname, password, phone, email, birthday, city, account_type = 'normal', workspace='GERAL' } = req.body;
         try {
             const id = crypto.randomBytes(4).toString('HEX');
             const pass = generatePassword(password);
             const password_hash = pass.hash;
             const password_salt = pass.salt;
-            const name = nickname.toLowerCase();
-            const points = 0;
-            const workspace = 'GERAL';
             await connection('users').insert({
                 id,
-                name,
+                name: name.toLowerCase(),
+                lastname: lastname.toLowerCase(),
                 password_hash,
                 password_salt,
                 phone,
                 workspace,
+                city,
                 email,
                 birthday,
-                points,
+                points: 0,
                 account_type,
             });
             return res.json({ id });
@@ -81,6 +80,7 @@ module.exports = {
 
     async login(req, res) {
         const { name = '', email = '', password } = req.body;
+        console.log('oi amigo')
         try {
             const normalizedName = name.toLowerCase();
             const user = await connection('users').select('*').where('name', normalizedName).orWhere('email', email).first();
@@ -91,7 +91,7 @@ module.exports = {
                 if (result) {
                     return res.json(user);
                 }
-            }
+            } 
             return res.send(false);
         } catch (error) {
             res.sendStatus(500)
