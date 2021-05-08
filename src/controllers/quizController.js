@@ -2,39 +2,42 @@ const connection = require('../database/connection');
 
 module.exports = {
     async index(req, res) {
-        const relations_quiz_questions = await connection('relationqq').select('*');
-        var questions;
-        let quizzes = [];
-        if (relations_quiz_questions.length == 0) {
-            return res.send('Nenhum quiz cadastrado');
-        }
-        for (let i = 0; i < relations_quiz_questions.length; i++) {
-            questions = await connection('questions').select('*').where('id', relations_quiz_questions[i].question_id).first();
-            var teste = true;
-            for (let i = 0; i < quizzes.length; i++) {
-                if (quizzes[i].id == relations_quiz_questions[i].quiz_id) {
-                    //console.log(quizzes[i]);
-                    if (!quizzes[i].questions) {
-                        quizzes[i].questions = [];
-                    } else {
-                        quizzes[i].questions.push(questions);
-                    }
-                    teste = false;
-                }
-            }
-            if (teste) {
-                let quiz = await connection('quiz').select('*').where('id', relations_quiz_questions[i].quiz_id).first();
-                quizzes.push(quiz);
-                if (!quizzes[i].questions) {
-                    quizzes[i].questions = [questions];
-                } else {
-                    quizzes[i].questions.push(questions);
-                }
-            }
-            // console.log(quizzes);
+        normalizedQuiz = [];
+        quiz = await connection('quiz').select('*');
+        for (let i = 0; i < quiz.length; i++) {
+            currentQuiz = quiz[i];
+            allQuestions = [];
 
+            questionsIds =  await connection('relation_quiz_question')
+                .select('question_id').where(currentQuiz.id, '=', 'quiz_id');
+
+            for (let j = 0; j < questionsIds.length; j++) {
+                questions = await connection('questions').select('*')
+                    .where(questionsIds[j].question_id, '=', 'id');
+                
+                answersIds =  await connection('relation_question_answer')
+                    .select('answer_id').where(questionsIds[j].question_id, '=', 'question_id');
+                
+                for (let k = 0; k < answersIds.length; k++) {
+                    answers =  await connection('answers').select('*')
+                        .where(answersIds[k].answer_id, '=', 'id');
+                        
+                }
+                normalizedQuestions = {
+                    questions,
+                    "answers" : {
+                        answers
+                    }
+                }
+                allQuestions.push(normalizedQuestions);
+            }
+            normalizedQuiz = {
+                currentQuiz,
+                "questions": allQuestions
+            }
+            allQuizzes.push($normalizedQuiz)
         }
-        return res.json(quizzes);
+        return res.json(allQuizzes);
     },
 
     async delete(req, res) {
