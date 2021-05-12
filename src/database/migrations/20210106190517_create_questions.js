@@ -5,8 +5,7 @@ exports.up = function(knex) {
         table.string('question').notNullable();
         table.float('points').notNullable();
         table.integer('max_time').notNullable();
-        table.string('correct_answer').notNullable();
-        table.string('wrong_answers').notNullable();
+        table.integer('correct_answer_id').notNullable();
     });
 };
   
