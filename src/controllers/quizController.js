@@ -3,39 +3,48 @@ const connection = require('../database/connection');
 module.exports = {
     async index(req, res) {
         normalizedQuiz = [];
-        quiz = await connection('quiz').select('*');
-        for (let i = 0; i < quiz.length; i++) {
-            currentQuiz = quiz[i];
+        function arrayRand() {
+            return Math.round(Math.random()) - 0.5;
+        }
+        allQuizzes = []
+        quizData = await connection('quiz').select('*');
+        for (let i = 0; i < quizData.length; i++) {
+            quiz = quizData[i];
             allQuestions = [];
 
             questionsIds =  await connection('relation_quiz_question')
-                .select('question_id').where(currentQuiz.id, '=', 'quiz_id');
+                .select('question_id').where('quiz_id', '=', quiz.id);
 
             for (let j = 0; j < questionsIds.length; j++) {
+                answers = []
                 questions = await connection('questions').select('*')
-                    .where(questionsIds[j].question_id, '=', 'id');
-                
+                    .where('id', '=', questionsIds[j].question_id);
+                questions = questions[0];
                 answersIds =  await connection('relation_question_answer')
-                    .select('answer_id').where(questionsIds[j].question_id, '=', 'question_id');
-                
+                    .select('answer_id').where('question_id', '=', questionsIds[j].question_id);
+                allAnswers = [];
                 for (let k = 0; k < answersIds.length; k++) {
                     answers =  await connection('answers').select('*')
-                        .where(answersIds[k].answer_id, '=', 'id');
-                        
+                        .where('id', '=', answersIds[k].answer_id);
+                    answers = answers[0];
+                    allAnswers.push(answers);
                 }
+
                 normalizedQuestions = {
-                    questions,
-                    "answers" : {
-                        answers
-                    }
+                    id: questions.id,
+                    question: questions.question,
+                    points: questions.points,
+                    max_time: questions.max_time,
+                    correct_answer_id: questions.correct_answer_id,
+                    answers: allAnswers.sort(arrayRand)
                 }
                 allQuestions.push(normalizedQuestions);
             }
             normalizedQuiz = {
-                currentQuiz,
-                "questions": allQuestions
+                quiz,
+                questions: allQuestions.sort(arrayRand)
             }
-            allQuizzes.push($normalizedQuiz)
+            allQuizzes.push(normalizedQuiz)
         }
         return res.json(allQuizzes);
     },
@@ -69,38 +78,50 @@ module.exports = {
         const { user_id, last_modify } = req.headers;
         let question_id;
         let max_time;
-        const user = await connection('users').select('name', 'account_type').where('id', user_id).first();
-        if (user && user.account_type == "admin") {
-            let quiz_id = await connection('quiz').insert({
-                'name': name,
-                'to_workspace': to_workspace,
-                'created_by': user.name,
-                'last_modify': last_modify,
-                'modify_by': user.name
-            });
-            for (let i = 0; i < questions.length; i++) {
-                max_time = questions[i].max_time;
-                if (questions[i].max_time > 600) {
-                    max_time = 600;
-                }
-                question_id = await connection('questions').insert({
-                    'question': questions[i].question,
-                    'points': questions[i].points,
-                    'max_time': max_time,
-                    'correct_answer': questions[i].correct_answer,
-                    'wrong_answers': questions[i].wrong_answers
+        try {
+            const user = await connection('users').select('name', 'account_type').where('id', user_id).first();
+            if (user && user.account_type == "admin") {
+                let quiz_id = await connection('quiz').insert({
+                    name: name,
+                    to_workspace: to_workspace,
+                    created_by: user.name,
+                    last_modify: last_modify,
+                    modify_by: user.name
                 });
-
-                await connection('relationqq').insert({
-                    'quiz_id': quiz_id,
-                    'question_id': question_id,
-                    'author': user.name
-                });
-            };
-
-
-            return res.send(true);
+                for (let i = 0; i < questions.length; i++) {
+                    max_time = questions[i].max_time;
+                    if (questions[i].max_time > 600) {
+                        max_time = 600;
+                    }
+                    question_id = await connection('questions').insert({
+                        question: questions[i].question,
+                        points: questions[i].points,
+                        max_time: max_time,
+                        correct_answer_id: questions[i].correct_answer_id,
+                    });
+                    await connection('relation_quiz_question').insert({
+                        'quiz_id': quiz_id,
+                        'question_id': question_id,
+                    });
+    
+                    for (let j = 0; j < questions[i].answers.length; j++) {
+                        answer_id = await connection('answers').insert({
+                            answer: questions[i].answers[j].answer,
+                            checked: false,
+                        });
+                        await connection('relation_question_answer').insert({
+                            'question_id': question_id,
+                            'answer_id': answer_id,
+                        });
+                    }
+    
+                };
+                return res.send(true);
+            }
+        } catch (error) {
+            res.error(error.message);
         }
+       
         return res.sendStatus(401)
     },
 
