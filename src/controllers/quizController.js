@@ -41,12 +41,17 @@ module.exports = {
                 allQuestions.push(normalizedQuestions);
             }
             normalizedQuiz = {
-                quiz,
+                id: quiz.id,
+                name: quiz.name,
+                to_workspace: quiz.to_workspace,
+                created_by: quiz.created_by,
+                last_modify: quiz.last_modify,
+                modify_by: quiz.modify_by,
                 questions: allQuestions.sort(arrayRand)
             }
             allQuizzes.push(normalizedQuiz)
         }
-        return res.json(allQuizzes);
+        return res.json({quizzes: allQuizzes});
     },
 
     async delete(req, res) {
