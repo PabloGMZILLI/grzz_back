@@ -51,7 +51,7 @@ module.exports = {
             }
             allQuizzes.push(normalizedQuiz)
         }
-        return res.json({quizzes: allQuizzes});
+        return res.json(allQuizzes);
     },
 
     async delete(req, res) {
