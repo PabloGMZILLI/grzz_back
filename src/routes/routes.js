@@ -2,6 +2,7 @@ const express = require('express');
 const userController = require('../controllers/userController');
 const rankingController = require('../controllers/rankingController');
 const quizController = require('../controllers/quizController');
+const answersController = require('../controllers/answersController');
 const shiftController = require('../controllers/shiftController');
 
 const routes = express.Router();
@@ -20,7 +21,8 @@ routes.put('/workspace/set/:uid', userController.setWorkspace);
 routes.post('/quiz/create', quizController.create);
 routes.get('/quiz', quizController.index);
 routes.delete('/quiz/delete/:id', quizController.delete);
-routes.post('/quiz/user/answer', quizController.userAnswer);
+
+routes.post('/answer/save', answersController.userAnswer);
 
 routes.post('/shifts/create', shiftController.create);
 routes.get('/shifts/:user_id', shiftController.index);

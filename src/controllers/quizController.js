@@ -102,7 +102,7 @@ module.exports = {
                         question: questions[i].question,
                         points: questions[i].points,
                         max_time: max_time,
-                        correct_answer_id: questions[i].correct_answer_id,
+                        correct_answer_id: -1,
                     });
                     await connection('relation_quiz_question').insert({
                         'quiz_id': quiz_id,
@@ -114,6 +114,10 @@ module.exports = {
                             answer: questions[i].answers[j].answer,
                             checked: false,
                         });
+                        if (questions[i].answers[j].correct) {
+                            await connection('questions').update({correct_answer_id: answer_id}).where('id', '=', question_id)
+                            console.log('setada resposta certa: ' + questions[i].answers[j].answer + ' ' + answer_id)
+                        }
                         await connection('relation_question_answer').insert({
                             'question_id': question_id,
                             'answer_id': answer_id,
@@ -128,65 +132,5 @@ module.exports = {
         }
        
         return res.sendStatus(401)
-    },
-
-    async listAnswer(req, res) {
-        const { name, to_workspace, questions } = req.body;
-        const { user_id, last_modify } = req.headers;
-
-        return res.sendStatus(401)
-    },
-
-    async userAnswer(req, res) {
-        const { user_id } = req.headers;
-        var { quiz_id, question_id, answer, time, date } = req.body;
-        var pontuation = 0;
-        var response;
-        var correct = false;
-        if (time > 600) {
-            time = 600;
-        }
-        try {
-            const user = await connection('users').select('id').where('id', user_id).first();
-            const ans = await connection('questions').select('correct_answer', 'points').where('id', question_id).first();
-            if (!ans) {
-                res.sendStatus(401);
-            }
-            if (ans.correct_answer.toLowerCase() == answer.toLowerCase()) {
-                if (time < 20) {
-                    pontuation = ans.points;
-                } else {
-                    pontuation = Math.abs((time / 60) - ans.points);
-                    pontuation = parseFloat(pontuation.toFixed(2));
-                    if (pontuation < (ans.points / 2)) pontuation = (ans.points / 2);
-                }
-                // Pegar pontuação salva do banco.
-                let user_points = await connection('users').where('id', user.id).select('points').first();
-                if (!user_points) return res.json(false);
-
-                // Somar pontuação da questão com a pontuação do banco.
-                await connection('users').where('id', user.id).update({ points: user_points.points + pontuation });
-
-                correct = true;
-                response = {
-                    'answer': {
-                        'user_id': user_id,
-                        'quiz_id': quiz_id,
-                        'question_id': question_id,
-                        'answer_selected': answer,
-                        'correct': correct,
-                        'date': date
-                    }
-                }
-            }
-
-            await connection('answers').insert(response['answer']);
-
-
-            return res.json(pontuation);
-        } catch (err) {
-            console.log(err);
-            return res.sendStatus(500);
-        }
     },
 }
