@@ -7,10 +7,12 @@ exports.up = function(knex) {
           return knex
                 .schema
                 .createTable('user_answered', function (table) {
-                    table.increments('user_id').notNullable();
+                    table.string('user_id').notNullable();
                     table.integer('quiz_id').notNullable();
                     table.integer('question_id').notNullable();
                     table.string('answer_checked_id').notNullable();
+                    table.float('points').notNullable();
+                    table.integer('timespent').notNullable();
                     table.string('datetime').notNullable();
 
                     table.foreign('user_id').references('id').on('users');

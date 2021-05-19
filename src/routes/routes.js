@@ -3,7 +3,6 @@ const userController = require('../controllers/userController');
 const rankingController = require('../controllers/rankingController');
 const quizController = require('../controllers/quizController');
 const answersController = require('../controllers/answersController');
-const shiftController = require('../controllers/shiftController');
 
 const routes = express.Router();
 
@@ -22,11 +21,8 @@ routes.post('/quiz/create', quizController.create);
 routes.get('/quiz', quizController.index);
 routes.delete('/quiz/delete/:id', quizController.delete);
 
-routes.post('/answer/save', answersController.userAnswer);
-
-routes.post('/shifts/create', shiftController.create);
-routes.get('/shifts/:user_id', shiftController.index);
-routes.get('/shifts', shiftController.index);
-routes.delete('/shifts/delete/:id', shiftController.delete);
+routes.post('/answer/save', answersController.saveAnswer);
+routes.get('/answers/:user_id', answersController.answers);
+routes.get('/answers', answersController.listAnswers);
 
 module.exports = routes;
