@@ -65,4 +65,70 @@ module.exports = {
             return res.sendStatus(500);
         }
     },
+     // Add answer to existent question.
+     async addAnswer(req, res) {
+        const { question_id } = req.params;
+        const { answer, correct } = req.body;
+        const { user_id } = req.headers;
+        try {
+            const user = await connection('users').select('account_type').where('id', user_id).first();
+            if (user && user.account_type == "admin") {
+                result = await connection('questions').select('id').where('id', '=', question_id).first();
+                if (!result) return res.send(false);
+
+                answer_id = await connection('answers').insert({
+                    answer: answer,
+                    checked: false,
+                });
+
+                if (correct) {
+                    await connection('questions').update({ correct_answer_id: answer_id }).where('id', '=', question_id);
+                }
+                await connection('relation_question_answer').insert({
+                    'question_id': question_id,
+                    'answer_id': answer_id,
+                });
+                return res.send(true);
+            } else {
+                return res.sendStatus(401);
+            }
+        } catch {
+            return res.sendStatus(500);
+        }
+    },
+
+    // Add answer to existent question.
+    async deleteAnswer(req, res) {
+        const { answer_id } = req.params;
+        const { user_id } = req.headers;
+
+        var statusQuestionTable = false;
+        var statusRelqa = false;
+        try {
+            if (!user_id) res.sendStatus(401);
+            const user = await connection('users').select('account_type').where('id', user_id).first();
+            
+            if (user && user.account_type == "admin") {
+                hasQuestion = await connection('answers').select('id').where('id', '=', answer_id).first();
+                if (!hasQuestion) return res.sendStatus(404);
+
+                statusQuestionTable = await connection('answers').where('id', '=', answer_id).del();
+
+                statusRelqa = await connection('relation_question_answer').where('answer_id', '=', answer_id).del();
+                if (statusQuestionTable && statusRelqa ) {
+                    return res.send(true);
+                } else {
+                    console.log("Something didn't work =/" + "response Table question: " + !!statusQuestionTable +  ". Response table relation question answer: " + !!statusRelqa );
+                    return res.send("Something didn't work =/");
+
+                }
+
+            } else {
+                return res.sendStatus(401);
+            }
+        } catch(error) {
+            console.error(error);
+            return res.sendStatus(500);
+        }
+    },
 }

@@ -20,11 +20,11 @@ routes.put('/workspace/set/:uid', userController.setWorkspace);
 routes.post('/quiz/create', quizController.create);
 routes.get('/quiz', quizController.index);
 routes.delete('/quiz/delete/:id', quizController.deleteQuiz);
+
 routes.post('/quiz/add_question/:quiz_id', quizController.addQuestion);
 routes.delete('/quiz/delete_question/:question_id', quizController.deleteQuestion);
-routes.post('/quiz/add_answer/:question_id', quizController.addAnswer);
-routes.delete('/quiz/delete_answer/:answer_id', quizController.deleteAnswer);
-
+routes.post('/quiz/add_answer/:question_id', answersController.addAnswer);
+routes.delete('/quiz/delete_answer/:answer_id', answersController.deleteAnswer);
 
 routes.post('/answer/save', answersController.saveAnswer);
 routes.get('/answers/:user_id', answersController.answers);

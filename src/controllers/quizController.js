@@ -136,6 +136,8 @@ module.exports = {
             const user = await connection('users').select('account_type').where('id', user_id).first();
 
             if (user && user.account_type == "admin") {
+                result = await connection('quiz').select('id').where('id', '=', quiz_id).first();
+                if (!result) return res.send(false);
                 question_id = await connection('questions').insert({
                     question: question,
                     points: points,
@@ -204,62 +206,4 @@ module.exports = {
         }
     },
 
-    // Add answer to existent question.
-    async addAnswer(req, res) {
-        const { question_id } = req.params;
-        const { answer, correct } = req.body;
-        const { user_id } = req.headers;
-        try {
-            const user = await connection('users').select('account_type').where('id', user_id).first();
-            if (user && user.account_type == "admin") {
-                answer_id = await connection('answers').insert({
-                    answer: answer,
-                    checked: false,
-                });
-
-                if (correct) {
-                    await connection('questions').update({ correct_answer_id: answer_id }).where('id', '=', question_id);
-                }
-                await connection('relation_question_answer').insert({
-                    'question_id': question_id,
-                    'answer_id': answer_id,
-                });
-                return res.send(true);
-            } else {
-                return res.sendStatus(401);
-            }
-        } catch {
-            return res.sendStatus(500);
-        }
-    },
-
-    // Add answer to existent question.
-    async deleteAnswer(req, res) {
-        const { question_id } = req.params;
-        const { answer, correct } = req.body;
-        const { user_id } = req.headers;
-        try {
-            if (!user_id) res.sendStatus(401);
-            const user = await connection('users').select('account_type').where('id', user_id).first();
-            if (user && user.account_type == "admin") {
-                answer_id = await connection('answers').insert({
-                    answer: answer,
-                    checked: false,
-                });
-
-                if (correct) {
-                    await connection('questions').update({ correct_answer_id: answer_id }).where('id', '=', question_id);
-                }
-                await connection('relation_question_answer').insert({
-                    'question_id': question_id,
-                    'answer_id': answer_id,
-                });
-                return res.send(true);
-            } else {
-                return res.sendStatus(401);
-            }
-        } catch {
-            return res.sendStatus(500);
-        }
-    },
 }
