@@ -97,6 +97,42 @@ module.exports = {
         }
     },
 
+    async setCorrectAnswer(req, res) {
+        const { question_id, answer_id } = req.body;
+        const { user_id } = req.headers;
+        try {
+            if (!user_id) res.sendStatus(401);
+            const user = await connection('users').select('account_type').where('id', user_id).first();
+            
+            if (user && user.account_type == "admin") {
+                if (Array.isArray(question_id)) {
+                    for (let i = 0; i < question_id.length; i++) {
+                        hasQuestion = await connection('questions').select('id').where('id', '=', question_id[i]).first();
+                        hasAnswer = await connection('answers').select('id').where('id', '=', answer_id).first();
+                        if (!hasQuestion || !hasAnswer ) return res.sendStatus(404);
+        
+                        // Atualiza a questão correta.
+                        await connection('questions').where('id', '=', question_id[i]).update({ correct_answer_id: answer_id });
+                    }
+                    return res.send(true); 
+                } else {
+                    hasQuestion = await connection('questions').select('id').where('id', '=', question_id).first();
+                    hasAnswer = await connection('answers').select('id').where('id', '=', answer_id).first();
+                    if (!hasQuestion || !hasAnswer ) return res.sendStatus(404);
+    
+                    // Atualiza a questão correta.
+                    await connection('questions').where('id', '=', question_id).update({ correct_answer_id: answer_id });
+                    return res.send(true);
+                }
+
+            }
+        } catch(error) {
+            console.error(error);
+            return res.sendStatus(500);
+        }
+
+    },
+
     // Add answer to existent question.
     async deleteAnswer(req, res) {
         const { answer_id } = req.params;
@@ -109,8 +145,8 @@ module.exports = {
             const user = await connection('users').select('account_type').where('id', user_id).first();
             
             if (user && user.account_type == "admin") {
-                hasQuestion = await connection('answers').select('id').where('id', '=', answer_id).first();
-                if (!hasQuestion) return res.sendStatus(404);
+                hasAnswer = await connection('answers').select('id').where('id', '=', answer_id).first();
+                if (!hasAnswer) return res.sendStatus(404);
 
                 statusQuestionTable = await connection('answers').where('id', '=', answer_id).del();
 

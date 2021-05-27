@@ -3,18 +3,14 @@ const url = require('url');
 
 module.exports = {
     async index(req, res) {
-        const { user_id = '' } = req.headers;
-        const allParams = url.parse(req.url, true).query;
+        var { limit=10, offset=0, filterName='workspace', filter} = req.query;
         let users = [];
-        let limit;
-        let filter;
-        allParams.limit ? limit = allParams.limit : limit = 10;
-        allParams.offset ? offset = allParams.offset : offset = 0;
-        allParams.filter ? filter = allParams.filter.toUpperCase() : filter = undefined;
-        if (filter == 'ALL') filter = undefined;
+        filter ? filter =  filter.toLowerCase() : null;
+        filterName ? filterName =  filterName.toLowerCase() : null;
+        if (filter == 'all') filter = undefined;
         try {
             if (filter) {
-                users = await connection('users').select('id', 'name', 'lastname', 'phone', 'workspace', 'email', 'city', 'birthday', 'points').where('workspace', filter).orderBy('points', 'desc').limit(limit).offset(offset);
+                users = await connection('users').select('id', 'name', 'lastname', 'phone', 'workspace', 'email', 'city', 'birthday', 'points').where(filterName, '=' , filter).orderBy('points', 'desc').limit(limit).offset(offset);
             } else {
                 users = await connection('users').select('id', 'name', 'lastname', 'phone', 'workspace', 'email', 'city', 'birthday', 'points').orderBy('points', 'desc').limit(limit).offset(offset);
             }
@@ -22,6 +18,7 @@ module.exports = {
 
             return res.sendStatus(401);
         } catch (error) {
+            console.log(error)
             return res.sendStatus(500);
         }
     },
