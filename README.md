@@ -2,7 +2,7 @@
 Projeto desenvolvido na disciplina fábrica de software, cursado na faculdade IMED.
 
 ## Tecnologias Utilizadas
-As técnologias utilizadas são: NodeJS, NPM e MongoDB.
+Alguma dass tecnologias utilizadas foram: NodeJS, NPM, knex e Sqlite.
 
 ## Bibliotecas utilizadas
 	* body-parser versão 1.19.0,
