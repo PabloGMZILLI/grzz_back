@@ -7,16 +7,23 @@ module.exports = {
             const answers = await connection('user_answered').select('*');
             if (answers) {
                 for (let index = 0; index < answers.length; index++) {
+                    let correctAnswerLabel = '';
                     const quizLabel =  await connection('quiz').select('name').where('id', '=', answers[index].quiz_id).first();
-                    const questionLabel = await connection('questions').select('question').where('id', '=', answers[index].question_id).first();
+                    const questions = await connection('questions').select('question', 'correct_answer_id').where('id', '=', answers[index].question_id).first();
                     const answerLabel = await connection('answers').select('answer').where('id', '=', answers[index].answer_checked_id).first();
+                    if (questions) {
+                        correctAnswerLabel = await connection('answers').select('answer').where('id', '=', questions.correct_answer_id).first();
+                    }
+
                     let response = {
                         quiz_id: answers[index] ? answers[index].quiz_id : null,
                         quiz_label: quizLabel ? quizLabel.name : null,
                         question_id: answers[index] ? answers[index].question_id : null,
-                        question_label: questionLabel ? questionLabel.question : null,
+                        question_label: questions ? questions.question : null,
                         answer_checked_id: answers ? answers[index].answer_checked_id : null,
                         answer_checked_label: answerLabel ? answerLabel.answer : null,
+                        correct_answer_id: questions ? questions.correct_answer_id : null,
+                        correct_answer_label: correctAnswerLabel ? correctAnswerLabel.answer : null,
                         points: answers ? answers[index].points.toFixed(2) : null,
                         timespent: answers ? answers[index].timespent : null,
                         datetime: answers ? answers[index].datetime : null
@@ -37,18 +44,24 @@ module.exports = {
         try {
             var allResponse = [];
             const answers = await connection('user_answered').select('*').where('user_id', '=', user_id);
-            if (answers) {
+            if (answers) {                
                 for (let index = 0; index < answers.length; index++) {
+                    let correctAnswerLabel = '';
                     const quizLabel =  await connection('quiz').select('name').where('id', '=', answers[index].quiz_id).first();
-                    const questionLabel = await connection('questions').select('question').where('id', '=', answers[index].question_id).first();
+                    const questions = await connection('questions').select('question', 'correct_answer_id').where('id', '=', answers[index].question_id).first();
                     const answerLabel = await connection('answers').select('answer').where('id', '=', answers[index].answer_checked_id).first();
+                    if (questions) {
+                        correctAnswerLabel = await connection('answers').select('answer').where('id', '=', questions.correct_answer_id).first();
+                    }
                     let response = {
                         quiz_id: answers[index] ? answers[index].quiz_id : null,
                         quiz_label: quizLabel ? quizLabel.name : null,
                         question_id: answers[index] ? answers[index].question_id : null,
-                        question_label: questionLabel ? questionLabel.question : null,
+                        question_label: questions ? questions.question : null,
                         answer_checked_id: answers ? answers[index].answer_checked_id : null,
                         answer_checked_label: answerLabel ? answerLabel.answer : null,
+                        correct_answer_id: questions ? questions.correct_answer_id : null,
+                        correct_answer_label: correctAnswerLabel ? correctAnswerLabel.answer : null,
                         points: answers ? answers[index].points.toFixed(2) : null,
                         timespent: answers ? answers[index].timespent : null,
                         datetime: answers ? answers[index].datetime : null
