@@ -3,19 +3,61 @@ const connection = require('../database/connection');
 module.exports = {
     async listAnswers(req, res) {
         try {
+            var allResponse = [];
             const answers = await connection('user_answered').select('*');
-            res.json(answers);
+            if (answers) {
+                for (let index = 0; index < answers.length; index++) {
+                    const quizLabel =  await connection('quiz').select('name').where('id', '=', answers[index].quiz_id).first();
+                    const questionLabel = await connection('questions').select('question').where('id', '=', answers[index].question_id).first();
+                    const answerLabel = await connection('answers').select('answer').where('id', '=', answers[index].answer_checked_id).first();
+                    let response = {
+                        quiz_id: answers[index] ? answers[index].quiz_id : null,
+                        quiz_label: quizLabel ? quizLabel.name : null,
+                        question_id: answers[index] ? answers[index].question_id : null,
+                        question_label: questionLabel ? questionLabel.question : null,
+                        answer_checked_id: answers ? answers[index].answer_checked_id : null,
+                        answer_checked_label: answerLabel ? answerLabel.answer : null,
+                        points: answers ? answers[index].points : null,
+                        timespent: answers ? answers[index].timespent : null,
+                        datetime: answers ? answers[index].datetime : null
+                    };
+                    allResponse.push(response);
+                }
+            }
+            res.json(allResponse);
         } catch (e) {
             console.log(e);
             return res.sendStatus(500);
         }
     },
-
+    // Answer by user id.
     async answers(req, res) {
         const { user_id } = req.params;
+        console.log('heheh');
         try {
+            var allResponse = [];
             const answers = await connection('user_answered').select('*').where('user_id', '=', user_id);
-            res.json(answers);
+            if (answers) {
+                for (let index = 0; index < answers.length; index++) {
+                    const quizLabel =  await connection('quiz').select('name').where('id', '=', answers[index].quiz_id).first();
+                    const questionLabel = await connection('questions').select('question').where('id', '=', answers[index].question_id).first();
+                    const answerLabel = await connection('answers').select('answer').where('id', '=', answers[index].answer_checked_id).first();
+                    let response = {
+                        quiz_id: answers[index] ? answers[index].quiz_id : null,
+                        quiz_label: quizLabel ? quizLabel.name : null,
+                        question_id: answers[index] ? answers[index].question_id : null,
+                        question_label: questionLabel ? questionLabel.question : null,
+                        answer_checked_id: answers ? answers[index].answer_checked_id : null,
+                        answer_checked_label: answerLabel ? answerLabel.answer : null,
+                        points: answers ? answers[index].points : null,
+                        timespent: answers ? answers[index].timespent : null,
+                        datetime: answers ? answers[index].datetime : null
+                    };
+                    allResponse.push(response);
+                }
+            }
+
+            res.json(allResponse);
         } catch (e) {
             console.log(e);
             return res.sendStatus(500);
@@ -133,7 +175,7 @@ module.exports = {
 
     },
 
-    // Add answer to existent question.
+    // Delete answer to existent question.
     async deleteAnswer(req, res) {
         const { answer_id } = req.params;
         const { user_id } = req.headers;
