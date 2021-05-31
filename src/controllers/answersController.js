@@ -17,7 +17,7 @@ module.exports = {
                         question_label: questionLabel ? questionLabel.question : null,
                         answer_checked_id: answers ? answers[index].answer_checked_id : null,
                         answer_checked_label: answerLabel ? answerLabel.answer : null,
-                        points: answers ? answers[index].points : null,
+                        points: answers ? answers[index].points.toFixed(2) : null,
                         timespent: answers ? answers[index].timespent : null,
                         datetime: answers ? answers[index].datetime : null
                     };
@@ -49,7 +49,7 @@ module.exports = {
                         question_label: questionLabel ? questionLabel.question : null,
                         answer_checked_id: answers ? answers[index].answer_checked_id : null,
                         answer_checked_label: answerLabel ? answerLabel.answer : null,
-                        points: answers ? answers[index].points : null,
+                        points: answers ? answers[index].points.toFixed(2) : null,
                         timespent: answers ? answers[index].timespent : null,
                         datetime: answers ? answers[index].datetime : null
                     };
@@ -97,7 +97,7 @@ module.exports = {
                 quiz_id: quiz_id,
                 question_id: question_id,
                 answer_checked_id: answer_checked_id,
-                points: pontuation,
+                points: pontuation.toFixed(2),
                 timespent: timespent,
                 datetime: created.toString()
             });
