@@ -72,6 +72,28 @@ module.exports = {
         }
     },
 
+    async updateQuiz(req, res) {
+        const { quiz_id } = req.params;
+        const { name, to_workspace } = req.body;
+        const { user_id, last_modify = '' } = req.headers;
+        let status = false;
+        try {
+            if (!user_id) res.sendStatus(401);
+            const user = await connection('users').select('name', 'account_type').where('id', user_id).first();
+            if (user && user.account_type == "admin") {
+                status = await connection('quiz').where('id', quiz_id).update({
+                    name: name,
+                    to_workspace: to_workspace,
+                    last_modify: last_modify,
+                    modify_by: user.name
+                });
+            }
+            return res.send(!!status);
+        } catch {
+            return res.sendStatus(500);
+        }
+    },
+
     async create(req, res) {
         const { name, to_workspace, questions } = req.body;
         const { user_id, last_modify } = req.headers;
@@ -170,6 +192,49 @@ module.exports = {
         }
     },
 
+    async updateQuestion(req, res) {
+        const { question_id } = req.params;
+        const { question, points, max_time, answers = [] } = req.body;
+        const { user_id } = req.headers;
+        try {
+            const user = await connection('users').select('account_type').where('id', user_id).first();
+            if (user && user.account_type == "admin") {
+                existentQuestion = await connection('questions').select('id').where('id', '=', question_id).first();
+                if (!existentQuestion) return res.send(false);
+                let oldsAnswersId = await connection('relation_question_answer').select('answer_id').where('question_id', '=', question_id);
+                console.log(oldsAnswersId);
+                for (let i = 0; i < oldsAnswersId.length; i++) {
+                    await connection('answers').where('id', '=', oldsAnswersId[i].answer_id).del();
+                    await connection('relation_question_answer').where('answer_id', '=', oldsAnswersId[i].answer_id).del();
+                }
+                for (let indice = 0; indice < answers.length; indice++) {
+                    let answer_id = await connection('answers').insert({
+                        answer: answers[indice].answer,
+                        checked: false,
+                    });
+                    if (answers[indice].correct) {
+                        await connection('questions').update({ correct_answer_id: answer_id }).where('id', '=', question_id);
+                    }
+                    await connection('relation_question_answer').insert({
+                        'question_id': question_id,
+                        'answer_id': answer_id,
+                    });
+                }
+                await connection('questions').update({
+                    question: question,
+                    points: points,
+                    max_time: max_time,
+                }).where('id', '=', question_id)
+
+                return res.send(true);
+            } else {
+                return res.sendStatus(401);
+            }
+        } catch {
+            return res.sendStatus(500);
+        }
+    },
+
     // Delete questions in existent quiz.
     async deleteQuestion(req, res) {
         const { question_id } = req.params;
@@ -181,7 +246,7 @@ module.exports = {
         try {
             if (!user_id) res.sendStatus(401);
             const user = await connection('users').select('account_type').where('id', user_id).first();
-            
+
             if (user && user.account_type == "admin") {
                 questionQtd = await connection('questions').select('id').where('id', '=', question_id);
                 if (questionQtd.length < 1) return res.sendStatus(404);
@@ -189,10 +254,10 @@ module.exports = {
 
                 statusRelqq = await connection('relation_quiz_question').where('question_id', '=', question_id).del();
                 statusRelqa = await connection('relation_question_answer').where('question_id', '=', question_id).del();
-                if (statusQuestionTable && statusRelqq && statusRelqa ) {
+                if (statusQuestionTable && statusRelqq && statusRelqa) {
                     return res.send(true);
                 } else {
-                    console.log("Something didn't work =/" + "response Table question: " + !!statusQuestionTable, ". Response table relation quiz question: " + !!statusRelqq + ". Response table relation question answer: " + !!statusRelqa );
+                    console.log("Something didn't work =/" + "response Table question: " + !!statusQuestionTable, ". Response table relation quiz question: " + !!statusRelqq + ". Response table relation question answer: " + !!statusRelqa);
                     return res.send("Something didn't work =/");
 
                 }
@@ -200,7 +265,7 @@ module.exports = {
             } else {
                 return res.sendStatus(401);
             }
-        } catch(error) {
+        } catch (error) {
             console.error(error);
             return res.sendStatus(500);
         }

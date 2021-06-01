@@ -18,9 +18,11 @@ routes.post('/login', userController.login);
 routes.put('/workspace/set/:uid', userController.setWorkspace);
 
 routes.post('/quiz/create', quizController.create);
+routes.post('/quiz/update/:quiz_id', quizController.updateQuiz);
 routes.get('/quiz', quizController.index);
 routes.delete('/quiz/delete/:id', quizController.deleteQuiz);
 
+routes.post('/question/update/:question_id', quizController.updateQuestion);
 routes.post('/quiz/add_question/:quiz_id', quizController.addQuestion);
 routes.delete('/quiz/delete_question/:question_id', quizController.deleteQuestion);
 
