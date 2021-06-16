@@ -54,6 +54,7 @@ module.exports = {
                         correctAnswerLabel = await connection('answers').select('answer').where('id', '=', questions.correct_answer_id).first();
                     }
                     let response = {
+                        quiz_id: answers[index] ? answers[index].user_id : null,
                         quiz_id: answers[index] ? answers[index].quiz_id : null,
                         quiz_label: quizLabel ? quizLabel.name : null,
                         question_id: answers[index] ? answers[index].question_id : null,
